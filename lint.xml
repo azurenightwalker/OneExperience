@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<lint>
+    <issue id="AppCompatMethod" severity="ignore" />
+    <issue id="SelectableText" severity="ignore" />
+    <issue id="Wakelock" severity="error" />
+    <issue id="TextViewEdits" severity="error" />
+    <!--issue id="GradleOverrides" severity="ignore">
+        <ignore path="AndroidManifest.xml" />
+    </issue-->
+</lint>
