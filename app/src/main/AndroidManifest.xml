@@ -7,6 +7,16 @@
         android:icon="@drawable/ic_launcher"
         android:label="@string/app_name"
         android:theme="@style/AppTheme" >
+        <activity
+            android:name="com.androidproductions.oneexperience.ShareReceiver"
+            android:label="@string/app_name" >
+            <intent-filter>
+                <action android:name="android.intent.action.SEND" />
+
+                <category android:name="android.intent.category.DEFAULT" />
+                <data android:mimeType="*/*" />
+            </intent-filter>
+        </activity>
     </application>
 
 </manifest>
