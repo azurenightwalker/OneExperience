@@ -1,34 +1,33 @@
 package com.androidproductions.oneexperience;
 
 import android.app.Activity;
-import android.content.BroadcastReceiver;
 import android.content.ComponentName;
-import android.content.Context;
 import android.content.Intent;
-import android.content.IntentFilter;
 import android.content.ServiceConnection;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.IBinder;
 import android.os.RemoteException;
-import android.util.Log;
-import android.view.Menu;
-import android.view.MenuItem;
 
 import com.lge.qpair.api.r1.IPeerContext;
 import com.lge.qpair.api.r1.IPeerIntent;
 import com.lge.qpair.api.r1.QPairConstants;
 
+import java.io.ByteArrayOutputStream;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+
 
 public class ShareReceiver extends Activity {
 
-    static private String ACTION_CALLBACK = "com.androidproductions.oneexperience.ACTION_CALLBACK";
-    static private String ACTION_PEER = "com.androidproductions.oneexperience.ACTION_PEER";
-    static private String TAG = "ONEEXPERIENCE";
+
 
     private Intent receivedIntent;
     private String receivedType;
-    private BroadcastReceiver callbackReceiver;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -60,68 +59,72 @@ public class ShareReceiver extends Activity {
         }
     }
 
-    @Override
-    protected void onResume() {
-        registerCallback();
-    }
-
-    @Override
-    protected void onPause() {
-        unregisterReceiver(callbackReceiver);
-    }
-
     private void constructIntent(IBinder service) {
 
         IPeerContext peerContext = IPeerContext.Stub.asInterface(service);
 
         try {
             IPeerIntent peerIntent = peerContext.newPeerIntent();
+            IPeerIntent callback = initCallbackIntent(peerContext);
 
-            // set the Activity class to be invoked on the peer.
-            peerIntent.setClassName(getPackageName(), ACTION_PEER);
 
-            // create an IPeerIntent for the callback.
-            IPeerIntent callback = peerContext.newPeerIntent();
-
-            // set the action for the callback.
-            callback.setAction(ACTION_CALLBACK);
-
-            handleData(peerIntent);
-
-            // call startActivityOnPeer() with an IPeerIntent using IPeerContext.
-            peerContext.startActivityOnPeer(peerIntent, callback);
-        } catch (RemoteException e) {
+            handleData(peerContext, peerIntent, callback);
+        } catch (Exception e) {
             e.printStackTrace();
         }
     }
 
-    private void handleData(IPeerIntent peerIntent) throws RemoteException {
+    private IPeerIntent initCallbackIntent(IPeerContext peerContext) throws RemoteException {
+        // create an IPeerIntent for the callback.
+        IPeerIntent callback = peerContext.newPeerIntent();
+        // set the action for the callback.
+        callback.setAction(OEConstants.ACTION_CALLBACK);
+        return callback;
+    }
 
-        peerIntent.putStringExtra("MIME_TYPE", receivedType);
+    private void handleData(IPeerContext peerContext, IPeerIntent peerIntent, IPeerIntent callback) throws RemoteException, IOException {
+
+        peerIntent.putStringExtra(OEConstants.MIMETYPE, receivedType);
 
         if(receivedType.startsWith("text/")){
             //handle sent text
-            String receivedText = receivedIntent.getStringExtra(Intent.EXTRA_TEXT);
+            peerIntent.setClassName(getPackageName(), OEConstants.ACTION_PEER);
+            peerIntent.putStringExtra(Intent.EXTRA_TEXT,
+                    receivedIntent.getStringExtra(Intent.EXTRA_TEXT));
+            peerContext.startActivityOnPeer(peerIntent, callback);
         }
         else if(receivedType.startsWith("image/")){
             //handle sent image
             Uri receivedUri = receivedIntent.getParcelableExtra(Intent.EXTRA_STREAM);
+
+            peerIntent.setDataAndType(saveImage(receivedUri), "image/*");
+
+            // set service to be started on peer
+            peerIntent.setPackage(OEConstants.SERVICE_PEER);
+
+            // call APIs to send the file and Peer Intent
+            peerContext.startServiceOnPeerWithFile(peerIntent,OEConstants.Folder, callback);
         }
     }
 
-    private void registerCallback()
-    {
-        callbackReceiver = new BroadcastReceiver() {
-            @Override
-            public void onReceive(Context context, Intent intent) {
-                // retrieve the error cause
-                String errorMessage = intent.getStringExtra(QPairConstants.EXTRA_CAUSE);
-                Log.e(TAG, errorMessage);
-            }
-        };
+    private String saveImage(Uri receivedUri) throws IOException {
+        InputStream is = getContentResolver().openInputStream(receivedUri);
+        Bitmap bitmap = BitmapFactory.decodeStream(is);
 
-        //Register callback receiver for call back intent
-        registerReceiver(callbackReceiver,
-                new IntentFilter(ACTION_CALLBACK));
+        //create a file to write bitmap data
+        File f = new File(getCacheDir(), receivedUri.getLastPathSegment());
+        if (f.exists())
+            f.delete();
+        f.createNewFile();
+        ByteArrayOutputStream bos = new ByteArrayOutputStream();
+        bitmap.compress(Bitmap.CompressFormat.PNG, 0 /*ignored for PNG*/, bos);
+        byte[] bitmapData = bos.toByteArray();
+
+        //write the bytes in file
+        FileOutputStream fos = new FileOutputStream(f);
+        fos.write(bitmapData);
+        fos.flush();
+        fos.close();
+        return f.getAbsolutePath();
     }
 }
