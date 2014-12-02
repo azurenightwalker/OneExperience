@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    package="com.androidproductions.oneexperience" >
+    package="com.technicallycovered.oneexperience" >
 
     <application
         android:allowBackup="true"
@@ -8,7 +8,7 @@
         android:label="@string/app_name"
         android:theme="@style/BaseTheme" >
         <activity
-            android:name="com.androidproductions.oneexperience.ShareReceiver"
+            android:name=".ShareReceiver"
             android:label="@string/app_name" >
             <intent-filter>
                 <action android:name="android.intent.action.SEND" />
@@ -20,20 +20,22 @@
         </activity>
 
         <receiver
-            android:name="com.androidproductions.oneexperience.CallbackReceiver"
+            android:name="com.technicallycovered.oneexperience.CallbackReceiver"
             android:enabled="true"
             android:exported="true" >
         </receiver>
 
-        <activity
-            android:name="com.androidproductions.oneexperience.TestActivity"
-            android:label="@string/title_activity_test" >
+        <service android:name="com.technicallycovered.oneexperience.services.NLService"
+            android:label="@string/app_name"
+            android:permission="android.permission.BIND_NOTIFICATION_LISTENER_SERVICE">
             <intent-filter>
-                <action android:name="android.intent.action.MAIN" />
-
-                <category android:name="android.intent.category.LAUNCHER" />
+                <action android:name="android.service.notification.NotificationListenerService" />
             </intent-filter>
-        </activity>
+        </service>
+
+        <service android:name="com.technicallycovered.oneexperience.services.DataReceiverService"
+            android:label="@string/app_name">
+        </service>
     </application>
 
 </manifest>

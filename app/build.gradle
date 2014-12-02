@@ -5,8 +5,8 @@ android {
     buildToolsVersion "21.0.2"
 
     defaultConfig {
-        applicationId "com.androidproductions.oneexperience"
-        minSdkVersion 14
+        applicationId "com.technicallycovered.oneexperience"
+        minSdkVersion 18
         targetSdkVersion 21
         versionCode 1
         versionName "1.0"
@@ -65,4 +65,5 @@ dependencies {
     compile 'com.android.support:support-v13:21.0.0'
     compile "com.android.support:appcompat-v7:21.0.0"
     compile 'com.lge.developer:qpair-apis:1.0.0'
+    compile 'com.google.code.gson:gson:2.3'
 }

@@ -1,8 +1,7 @@
-package com.androidproductions.oneexperience;
+package com.technicallycovered.oneexperience;
 
 import android.app.Activity;
 import android.content.Intent;
-import android.net.Uri;
 import android.os.Bundle;
 
 

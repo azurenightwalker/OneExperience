@@ -1,4 +1,4 @@
-package com.androidproductions.oneexperience;
+package com.technicallycovered.oneexperience.services;
 
 import android.app.Activity;
 import android.app.Service;
